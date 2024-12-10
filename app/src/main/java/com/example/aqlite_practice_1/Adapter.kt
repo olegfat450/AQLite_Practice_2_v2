@@ -11,7 +11,7 @@ import android.widget.TextView
 class Adapter(private val context: Context, checkList: MutableList<Check>):
      ArrayAdapter<Check>(context,R.layout.listitem,checkList) {
 
-     @SuppressLint("SetTextI18n")
+     @SuppressLint("SetTextI18n", "SuspiciousIndentation")
      override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
               val check = getItem(position)
               var view = convertView
@@ -20,8 +20,9 @@ class Adapter(private val context: Context, checkList: MutableList<Check>):
                    val name_item = view?.findViewById<TextView>(R.id.name_item)
                    val weight_item = view?.findViewById<TextView>(R.id.weight_item)
                    val value_item = view?.findViewById<TextView>(R.id.value_item)
+                   val id_item = view?.findViewById<TextView>(R.id.id_item)
 
-
+               id_item?.text = "Чек №: ${(check?.id).toString().padStart(6,'0')}"
                name_item?.text = "Продукт:    ${check?.name}"
                weight_item?.text = "Цена:  ${check?.price}           Вес:  ${check?.weight}"
                value_item?.text = "ИТОГО:  ${check?.value}"

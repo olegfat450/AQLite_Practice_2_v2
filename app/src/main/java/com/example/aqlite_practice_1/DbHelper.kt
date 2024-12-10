@@ -15,7 +15,7 @@ class DbHelper(context: Context,factory: SQLiteDatabase.CursorFactory?): SQLiteO
                  private val DATABASE_NAME = "CHECK_DATABASE"
                  private val DATABASE_VERSION = 1
                          val TABLE_NAME = "check_table"
-                       //  val KEY_ID = "id"
+                         val KEY_ID = "id"
                          val KEY_NAME = "name"
                          val KEY_PRICE = "price"
                          val KEY_WEIGHT = "weight"
@@ -25,7 +25,7 @@ class DbHelper(context: Context,factory: SQLiteDatabase.CursorFactory?): SQLiteO
     @SuppressLint("SuspiciousIndentation")
     override fun onCreate(db: SQLiteDatabase?) {
            val query = ("CREATE TABLE " + TABLE_NAME + " (" +
-                     //  KEY_ID + " INTEGER PRIMARY KEY, " +
+                       KEY_ID + " INTEGER PRIMARY KEY, " +
                        KEY_NAME + " TEXT, " +
                        KEY_PRICE + " TEXT, " +
                        KEY_WEIGHT + " TEXT, " +
@@ -41,6 +41,7 @@ class DbHelper(context: Context,factory: SQLiteDatabase.CursorFactory?): SQLiteO
 
               val db = this.writableDatabase
               val values = ContentValues()
+              values.put(KEY_ID,check.id)
               values.put(KEY_NAME,check.name)
               values.put(KEY_PRICE,check.price)
               values.put(KEY_WEIGHT,check.weight)
@@ -63,6 +64,7 @@ class DbHelper(context: Context,factory: SQLiteDatabase.CursorFactory?): SQLiteO
                  var price: String
                  var weight: String
                  var value: String
+                 var id: Int
 
                  if (cursor.moveToFirst()){
                      do{
@@ -70,12 +72,34 @@ class DbHelper(context: Context,factory: SQLiteDatabase.CursorFactory?): SQLiteO
                           price = cursor.getString(cursor.getColumnIndex("price"))
                           weight = cursor.getString(cursor.getColumnIndex("weight"))
                           value = cursor.getString(cursor.getColumnIndex("value"))
+                          id = cursor.getInt(cursor.getColumnIndex("id"))
 
-                          listCheck.add(Check(name,price,weight,value))
+                          listCheck.add(Check(name,price,weight,value,id))
 
                      } while ( cursor.moveToNext())
                  }
-                             return listCheck
+             return listCheck }
+
+             fun updateCheck(check: Check){
+
+                 val db = this.writableDatabase
+                 val values = ContentValues()
+                 values.put(KEY_ID,check.id)
+                 values.put(KEY_NAME,check.name)
+                 values.put(KEY_PRICE,check.price)
+                 values.put(KEY_WEIGHT,check.weight)
+                 values.put(KEY_VALUE,check.value)
+                 db.update(TABLE_NAME,values,"id=" + check.id,null)
+                 db.close() }
+
+    fun deleteCheck(check: Check){
+
+        val db = this.writableDatabase
+        val values = ContentValues()
+        values.put(KEY_ID,check.id)
+        db.delete(TABLE_NAME,"id=" + check.id,null)
+        db.close() }
+
          }
 
 
@@ -92,4 +116,3 @@ class DbHelper(context: Context,factory: SQLiteDatabase.CursorFactory?): SQLiteO
 
 
 
-}

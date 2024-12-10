@@ -16,6 +16,7 @@ import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
@@ -39,7 +40,8 @@ class MainActivity : AppCompatActivity() {
                     private var db = DbHelper(this,null)
 
 
-
+                           var id = 0
+    @SuppressLint("SuspiciousIndentation")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -51,19 +53,33 @@ class MainActivity : AppCompatActivity() {
 
             check.addAll(db.readCheck()); checkAdapter.notifyDataSetChanged()
 
+            id = check.maxOfOrNull { it.id }?.toInt() ?: 0;
+
+
             button.setOnClickListener { try{ val value = weightTv.text.toString().toDouble(); valueTv.setText((value * price).toString()) } catch (_:Exception) {return@setOnClickListener} }
 
 
             buttonSave.setOnClickListener { if(valueTv.text.isEmpty()) return@setOnClickListener
-
-
-
-                       db.addCheck(Check(Product.product[select].name,price.toString(),weightTv.text.toString(),valueTv.text.toString()))
+                id++
+                       db.addCheck(Check(Product.product[select].name,price.toString(),weightTv.text.toString(),valueTv.text.toString(),id))
                       check.clear(); check.addAll(db.readCheck()); checkAdapter.notifyDataSetChanged()
-                    weightTv.text.clear(); valueTv.text = ""; spinner.setSelection(0)
+                    weightTv.text.clear(); valueTv.text = ""; spinner.setSelection(0); }
 
 
-            }
+
+                  listTv.onItemClickListener = AdapterView.OnItemClickListener{ s,v,position,id ->
+
+                      val builder = AlertDialog.Builder(this)
+                      builder.setTitle("Выберите действие")
+                          .setPositiveButton("Удалить"){ _,_ -> db.deleteCheck(check[position]); check.clear(); check.addAll(db.readCheck()); checkAdapter.notifyDataSetChanged()}
+                          .setNeutralButton("Отмена"){ d,t -> d.cancel() }
+                              .setNegativeButton("Редактировать"){ d,t -> updateCheck(position) }.create()
+
+                      builder.show() }
+
+
+
+
 
 
 
@@ -76,29 +92,50 @@ class MainActivity : AppCompatActivity() {
                     position: Int,
                     id: Long
                 ) {  select = position; price = Product.product[select].price
-                    priceTv.text = price.toString()
-
-
-                }
-
+                    priceTv.text = price.toString() }
                 override fun onNothingSelected(parent: AdapterView<*>?) {}
-
             }
 
-        spinner.onItemSelectedListener = itemSelected
+        spinner.onItemSelectedListener = itemSelected }
+
+    @SuppressLint("SuspiciousIndentation")
+    private fun updateCheck( position: Int ) {
+
+        val builder = AlertDialog.Builder(this)
+        val inflater = this.layoutInflater
+        val dialogView = inflater.inflate(R.layout.update_item,null)
+        val name_upd = dialogView.findViewById<EditText>(R.id.name_upd)
+        val price_upd = dialogView.findViewById<EditText>(R.id.price_upd)
+        val weight_upd = dialogView.findViewById<EditText>(R.id.weight_upd)
+        val value_upd = dialogView.findViewById<EditText>(R.id.value_upd)
+
+            name_upd.setText(check[position].name)
+            price_upd.setText(check[position].price)
+            weight_upd.setText(check[position].weight)
+            value_upd.setText(check[position].value)
+
+            builder.setView(dialogView)
+            builder.setTitle("Редактирование")
+                .setNegativeButton("Отмена"){d,_ -> d.cancel()}
+                .setPositiveButton("Сохранить"){d,_ ->
 
 
 
+                       val name = name_upd.text.toString()
+                       val price = price_upd.text.toString()
+                       val weight = weight_upd.text.toString()
+                       val value = value_upd.text.toString()
 
+                    if( name.trim() != "" && price.trim() != "" && weight.trim() != "" && value.trim() != "")
+                          {
+                                 val check1 = Check(name,price,weight,value,check[position].id)
+                                    db.updateCheck(check1); check.clear(); check.addAll(db.readCheck())
+                                       checkAdapter.notifyDataSetChanged()
 
-
-          }
-
-
-
-
-
-
+                            }
+                }.create()
+        builder.show()
+    }
 
 
     fun init(){
@@ -131,7 +168,7 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.exit -> {finishAffinity()}
-            R.id.clearBase -> {/* DbHelper(this,null).removeAll()*/; db.removeAll(); check.clear(); checkAdapter.notifyDataSetChanged() ;Toast.makeText(this,"База очищена",Toast.LENGTH_LONG).show()}
+            R.id.clearBase -> { db.removeAll(); check.clear(); id = 0; checkAdapter.notifyDataSetChanged() ;Toast.makeText(this,"База очищена",Toast.LENGTH_LONG).show()}
         }
 
         return super.onOptionsItemSelected(item)
