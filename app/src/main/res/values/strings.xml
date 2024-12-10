@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">AQLite_Practice_1</string>
+    <string name="button1"><![CDATA[-->]]></string>
+
+    <string-array  name="spinner">
+        <item>Арбуз</item>
+        <item>Виноград</item>
+        <item >Груша</item>
+    </string-array>
+</resources>
